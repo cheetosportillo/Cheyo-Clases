@@ -1,0 +1,219 @@
+function validarCampo(campo) {
+    const vacio = campo.value.trim() === "";
+    campo.classList.toggle("is-invalid", vacio);
+    campo.classList.toggle("is-valid", !vacio);
+
+    return !vacio;
+}
+
+const formulario = document.getElementById("formulario");
+const btnGuardar = document.getElementById("btnGuardar");
+const dui = document.getElementById("dui");
+const nombre = document.getElementById("nombre");
+//const roles = document.querySelectorAll('input[name="roles[]"]:checked');
+
+const campos = [dui, nombre];
+
+if (formulario) {
+    ///////////////////VALIDACION DE CAMPOS VACIOS
+
+
+    campos.forEach(function (campo) {
+        campo.addEventListener("blur", function () {
+            validarCampo(campo);
+        });
+    });
+
+
+    ///////////////////////FORMATO DE DUI/////////////////
+
+    dui.addEventListener("input", function () {
+        let valor = dui.value.replace(/\D/g, "");
+        valor = valor.substring(0, 9);
+        if (valor.length > 8) {
+            valor = valor.substring(0, 8) + "-" + valor.substring(8);
+        }
+        dui.value = valor;
+    });
+
+    ///////////////////BUSQUEDA DE DUI- PARA REPERIDOS/////////
+
+
+    /////////////////////BOTON CANCELAR//////
+
+    btnCancelar.addEventListener("click", function () {
+        window.location.href = "lista-empleados.php";
+    });
+
+
+    btnGuardar.addEventListener("click", async function () {
+        const duiValido = validarCampo(dui);
+        const nombreValido = validarCampo(nombre);
+
+
+        if (btnGuardar.textContent.trim() == "Guardar") {
+
+            if (duiValido && nombreValido) {
+                const roles = document.querySelectorAll('input[name="roles[]"]:checked');
+
+                const seleccionados = Array.from(roles).map(c => c.value);
+
+                if (seleccionados.length === 0) {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "warning",
+                        title: "Poseidón",
+                        text: "Selecciona al menos un ROL",
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    //return;
+                } else {
+                    try {
+                        const datos = new FormData(formulario);
+                        datos.append("opcion", "guardar");
+                        datos.append("idempleado", btnGuardar.dataset.id);
+                        datos.append("dui", dui.value);
+
+                        btnGuardar.disabled = true;
+                        btnGuardar.textContent = "Procesando...";
+
+                        // Enviar datos
+                        // await hace que JavaScript ESPERE
+                        const respuesta = await fetch("DAONivelAcceso.php", {
+                            method: "POST",
+                            body: datos
+                        });
+
+                        // Verificar respuesta HTTP
+                        if (!respuesta.ok) {
+                            throw new Error("Error HTTP: " + respuesta.status);
+                        }
+
+                        // Esperar a que DAO termine
+                        const resultado = await respuesta.json();
+                        if (resultado.estado) {
+                            //todo salio bien
+                            Swal.fire({
+                                position: "top-end",
+                                icon: "success",
+                                title: "Poseidón",
+                                text: resultado.mensaje,
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {//cuando desaparece el mensaje se recarga la pagina
+                                window.location.href = "lista-empleados.php";
+                            });
+
+                            limpiarCampos();
+
+                        } else {
+                            Swal.fire({
+                                position: "top-end",
+                                icon: "danger",
+                                title: "Poseidón",
+                                text: resultado.mensaje,
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {//cuando desaparece el mensaje se recarga la pagina
+                                window.location.href = "lista-empleados.php";
+                            });
+                        }
+
+                    } catch (error) {
+
+                    } finally {
+                        btnGuardar.disabled = true;
+                        btnGuardar.textContent = "Guardar";
+                    }
+                }
+            }
+        }
+
+    });
+}
+///////////////////LIMPIAR TODOS LOS CAMPOS////////////
+function limpiarCampos() {
+    campos.forEach(function (campo) {
+        campo.value = "";
+        campo.classList.remove("is-invalid");
+        campo.classList.remove("is-valid");
+    });
+}
+
+/////////PROCESA AL TERMINAR DE CARGAR LA PAGINA
+document.addEventListener("DOMContentLoaded", async () => {
+
+
+
+    //////////////////////////////
+    // Obtener el ID de la URL
+    const parametros = new URLSearchParams(window.location.search);
+    const idempleado = parametros.get("id");
+
+    if (idempleado) {//SI EXISTE EL ID, SE HACE LA BUSQUEDA
+        try {
+            const datos = new FormData();
+            datos.append("opcion", "consultar");
+            datos.append("idempleado", idempleado);
+
+            Swal.fire({
+                title: "Consultando...",
+                text: "Espere",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const respuesta = await fetch("DAONivelAcceso.php", {
+                method: "POST",
+                body: datos
+            });
+
+            if (!respuesta.ok) {
+                console.error(respuesta.status);
+                throw new Error("Error HTTP: " + respuesta.status);
+            }
+
+            const resultado = await respuesta.json();
+
+
+            // Cerrar el mensaje de espera
+            Swal.close();
+
+            if (resultado.estado) {
+                dui.value = resultado.datos.dui;
+                nombre.value = resultado.datos.nombre + " " + resultado.datos.apellido;
+                btnGuardar.dataset.id = resultado.datos.idempleado;
+                btnGuardar.disabled = false;
+
+                // Marcar los roles seleccionados //admin, caja, lector
+                //admin
+                //caja
+                //lector
+                const roles = resultado.datos.rol ? resultado.datos.rol.split(",").map(r => r.trim()) : [];
+
+                document.querySelectorAll('input[name="roles[]"]').forEach(chk => {
+                    chk.checked = roles.includes(chk.value);
+                });
+
+            }
+
+        } catch (error) {
+            Swal.close();
+        }
+    }
+
+
+
+});
+const cerrarSesion = document.getElementById("cerrarSesion");
+
+cerrarSesion.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: '¿Estás seguro que deseas salir del sistema?',
+// líneas 220+ no se muestran en el video
