@@ -75,6 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <select class="form-select form-select-sm accion-medidor" aria-label="Acciones del medidor">
                         <option value="">Seleccionar...</option>
                         <option value="modificar">Modificar</option>
+                        <option value="historial">Historial</option>
                     </select>
                 `,
                 cellClick: (event, cell) => {
@@ -82,9 +83,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (!select) return;
 
                     select.onchange = () => {
+                        const medidor = cell.getRow().getData();
+
                         if (select.value === "modificar") {
-                            const medidor = cell.getRow().getData();
                             window.location.href = `medidor.php?id=${encodeURIComponent(medidor.idcontrato)}`;
+                        }
+
+                        if (select.value === "historial") {
+                            window.location.href = `historial.php?id=${encodeURIComponent(medidor.idmedidor)}`;
                         }
                     };
                 }
