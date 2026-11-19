@@ -1,4 +1,3 @@
-
 //////////PROCESA AL TERMINAR DE CARGAR LA PAGINA
 document.addEventListener("DOMContentLoaded", async () => {
     const contenedor = document.getElementById("users-table");
@@ -52,20 +51,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             { title: "DUI", field: "dui" },
             { title: "Nombre", field: "nombre" },
             { title: "Apellido", field: "apellido" },
-            { title: "Teléfono", field: "telefono" },
-            { title: "Sueldo", field: "sueldo" },
-            { title: "AFP", field: "afp" },
-            { title: "NUP", field: "nup" },
+            { title: "Telefono", field: "telefono" },
+            { title: "Fecha Ingreso", field: "fecha_ingreso" },
+            { title: "ISSS", field: "num_isss", visible: false },
+            { title: "N° AFP", field: "nup", visible: false },
+            { title: "AFP", field: "afp", visible: false },
+            { title: "Tipo Renta", field: "renta", visible: false },
+            { title: "Sueldo ($)", field: "sueldo" },
             { title: "Cargo", field: "cargo" },
-            { title: "Fecha de ingreso", field: "fecha_ingreso" },
-            { title: "Renta", field: "renta" },
-            { title: "Cantón", field: "canton" },
-            { title: "ISSS", field: "num_isss" },
+            { title: "Canton", field: "canton" },
             { title: "Estado", field: "estado" },
             {
                 title: "Acciones", field: "acciones", hozAlign: "center", headerSort: false,
                 formatter: function () {
                     return `
+                    <button type="button" class="btn btn-outline-secondary btn-privilegio">
+                        <i class="bi bi-person-fill-lock" aria-hidden="true"> </i>
+                    </button>
                     <button type="button" class="btn btn-outline-secondary btn-editar">
                         <i class="bi bi-pencil" aria-hidden="true"> </i>
                     </button>
@@ -79,6 +81,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     if (e.target.closest(".btn-editar")) {
                         location.href = "empleado.php?id=" + empleado.idempleado;
+                    }
+                    if (e.target.closest(".btn-privilegio")) {
+                        location.href = "nivelAcceso.php?id=" + empleado.idempleado;
                     }
 
                     if (e.target.closest(".btn-eliminar")) {
@@ -227,3 +232,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 });
 
+
+const cerrarSesion = document.getElementById("cerrarSesion");
+
+cerrarSesion.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: '¿Estás seguro que deseas salir del sistema?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            window.location.href = 'salir.php';
+        }
+
+    });
+});

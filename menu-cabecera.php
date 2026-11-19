@@ -1,3 +1,11 @@
+<?php
+$roles = array_map('trim', explode(',', $_SESSION['rol'] ?? ''));//admin, caja
+
+function tieneRol($rol)
+{
+    global $roles;
+    return in_array($rol, $roles, true);
+}
 <nav class="app-header navbar navbar-expand bg-body">
       <!--begin::Container-->
       <div class="container-fluid">
@@ -150,6 +158,30 @@
               </a>
             </div>
           </li>
+          <?php if (tieneRol('admin')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de Configuración -->
+<?php }
+if (tieneRol('admin')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de Empleado -->
+<?php }
+if (tieneRol('admin')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de Socio -->
+<?php }
+if (tieneRol('admin')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de Contrato -->
+<?php }
+if (tieneRol('admin')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de Medidor -->
+<?php }
+if (tieneRol('admin') || tieneRol('lector')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de Lectura -->
+<?php }
+if (tieneRol('admin')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de Generar Recibos -->
+<?php }
+if (tieneRol('admin') || tieneRol('caja')) { ?>
+    <!-- Bloque <li class="nav-item ..."> de PAGOS -->
+<?php } ?>
           <!--end::Notifications Dropdown Menu-->
 
           <!--begin::Language Menu-->

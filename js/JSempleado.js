@@ -208,3 +208,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 });
+
+
+const cerrarSesion = document.getElementById("cerrarSesion");
+
+cerrarSesion.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: '¿Estás seguro que deseas salir del sistema?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            window.location.href = 'salir.php';
+        }
+
+    });
+});
