@@ -1,9 +1,11 @@
 <?php
+header("Content-Type: application/json; charset=utf-8");
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $opcion = $_POST['opcion'] ?? '';
 
 if ($opcion == "consultar") {
-    require_once "../config/conexion.php";
+    require_once "../Config/Conexion.php";
 
     try {
 
@@ -23,30 +25,31 @@ if ($opcion == "consultar") {
         t.precio AS precio_unitario,
 
         CASE 
-            WHEN t.tipo_cobro = 'FIJO' THEN t.precio
+            WHEN t.tipo = 'FIJO' THEN t.precio
 
-            WHEN t.tipo_cobro = 'POR_METRO' THEN 
+            WHEN t.tipo = 'POR_METRO' THEN
                 (c.lectura_actual - c.lectura_anterior) * t.precio
 
         END AS monto,
 
-        t.tipo_cobro,
+        t.tipo,
         c.estado
 
     FROM medidor AS m
 
     INNER JOIN canton AS ca
-        ON ca.idcanton = m.idcanton
+        ON ca.id_canton = m.idcanton
 
     INNER JOIN ruta AS ru
-        ON ru.idruta = m.idruta
+        ON ru.idRuta = m.idruta
 
-    LEFT JOIN consumo AS c
+    INNER JOIN consumo AS c
         ON c.idmedidor = m.idmedidor
+        AND c.estado = 'PENDIENTE'
 
     LEFT JOIN tarifa AS t
-        ON t.idtarifa = (
-            SELECT t2.idtarifa
+        ON t.id_tarifa = (
+            SELECT t2.id_tarifa
             FROM tarifa AS t2
             WHERE (c.lectura_actual - c.lectura_anterior)
                 BETWEEN t2.desde AND t2.hasta
@@ -94,6 +97,8 @@ if ($opcion == "consultar") {
         $resultado->free();
         $stmt->close();
     } catch (Throwable $e) {
+        error_log("Error al consultar consumos sin recibo: " . $e->getMessage());
+        http_response_code(500);
         echo json_encode([
             "mensaje" => "No se pudieron obtener los registros"
         ], JSON_UNESCAPED_UNICODE);
@@ -102,7 +107,7 @@ if ($opcion == "consultar") {
 
 if ($opcion == 'generar') {
 
-    require_once "../config/conexion.php";
+    require_once "../Config/Conexion.php";
     //header('Content-Type: application/json; charset=utf-8');
 
     $recibos = json_decode($_POST['recibos'] ?? '', true);
@@ -126,7 +131,7 @@ if ($opcion == 'generar') {
         // Bloquear correlativo
         $sql = "SELECT prefijo, ultimo
                 FROM tiraje
-                WHERE estado = 'ACTIVO'
+                WHERE estado = 'Activo'
                 FOR UPDATE";
 
         $consulta = $conexion->query($sql);
@@ -192,7 +197,7 @@ if ($opcion == 'generar') {
         // Actualizar último número generado
         $sql = "UPDATE tiraje
                 SET ultimo = ?
-                WHERE estado = 'ACTIVO'";
+                WHERE estado = 'Activo'";
 
         $stmt = $conexion->prepare($sql);
         $stmt->bind_param("i", $nuevoNumero);

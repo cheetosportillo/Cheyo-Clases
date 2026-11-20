@@ -6,7 +6,7 @@
   <title>Sistema de Agua - POSEIDÓN</title>
 
   <!--begin::Theme Init (prevents flash of incorrect theme on load, #6043)-->
-  <script src="js/color-thema.js"></script>
+  <script src="../js/color-thema.js"></script>
   <!--end::Theme Init-->
 
   <!--begin::Accessibility Meta Tags-->
@@ -25,7 +25,7 @@
   <!--begin::Accessibility Features-->
   <!-- Skip links will be dynamically added by accessibility.js -->
   <meta name="supported-color-schemes" content="light dark" />
-  <link rel="preload" href="css/adminlte.css" as="style" />
+  <link rel="preload" href="../css/adminlte.css" as="style" />
   <!--end::Accessibility Features-->
 
   <!--begin::Fonts-->
@@ -44,7 +44,7 @@
   <!--end::Third Party Plugin(Bootstrap Icons)-->
 
   <!--begin::Required Plugin(AdminLTE)-->
-  <link rel="stylesheet" href="css/adminlte.css" />
+  <link rel="stylesheet" href="../css/adminlte.css" />
   <!--end::Required Plugin(AdminLTE)-->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -112,11 +112,11 @@
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"
     crossorigin="anonymous"></script>
   <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
-  <script src="js/adminlte.js"></script>
+  <script src="../js/adminlte.js"></script>
   <!--end::Required Plugin(AdminLTE)-->
   <!--begin::OverlayScrollbars Configure-->
-  <script src="js/para-el-menu.js"></script>
-  <script src="js/JSLogin.js?v=<?php echo filemtime('js/JSLogin.js'); ?>"></script>
+  <script src="../js/para-el-menu.js"></script>
+  <script src="../js/JSLogin.js?v=<?php echo filemtime('../js/JSLogin.js'); ?>"></script>
 </body>
 <!--end::Body-->
 

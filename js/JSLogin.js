@@ -37,7 +37,7 @@ if (formulario) {
 
                 // Enviar datos
                 // await hace que JavaScript ESPERE
-                const respuesta = await fetch("forms/DAOLogin.php", {
+                const respuesta = await fetch("DAOLogin.php", {
                     method: "POST",
                     body: datos
                 });
@@ -59,7 +59,7 @@ if (formulario) {
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {//cuando desaparece el mensaje se recarga la pagina
-                        window.location.href = "forms/index.php";
+                        window.location.href = "index.php";
                     });
 
                 } else {
