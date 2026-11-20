@@ -8,6 +8,7 @@ function validarCampo(campo) {
 
 const formulario = document.getElementById("formulario");
 const btnGuardar = document.getElementById("btnGuardar");
+const btnCancelar = document.getElementById("btnCancelar");
 const dui = document.getElementById("dui");
 const nombre = document.getElementById("nombre");
 //const roles = document.querySelectorAll('input[name="roles[]"]:checked');
@@ -52,6 +53,18 @@ if (formulario) {
 
 
         if (btnGuardar.textContent.trim() == "Guardar") {
+
+            if (!btnGuardar.dataset.id) {
+                Swal.fire({
+                    position: "top-end",
+                    icon: "warning",
+                    title: "Poseidón",
+                    text: "Seleccione el empleado desde la lista de empleados",
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+                return;
+            }
 
             if (duiValido && nombreValido) {
                 const roles = document.querySelectorAll('input[name="roles[]"]:checked');
@@ -111,7 +124,7 @@ if (formulario) {
                         } else {
                             Swal.fire({
                                 position: "top-end",
-                                icon: "danger",
+                                icon: "error",
                                 title: "Poseidón",
                                 text: resultado.mensaje,
                                 showConfirmButton: false,
@@ -122,9 +135,17 @@ if (formulario) {
                         }
 
                     } catch (error) {
-
+                        console.error(error);
+                        Swal.fire({
+                            position: "top-end",
+                            icon: "error",
+                            title: "Poseidón",
+                            text: "No se pudo guardar el nivel de acceso",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
                     } finally {
-                        btnGuardar.disabled = true;
+                        btnGuardar.disabled = false;
                         btnGuardar.textContent = "Guardar";
                     }
                 }
@@ -210,10 +231,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 const cerrarSesion = document.getElementById("cerrarSesion");
 
-cerrarSesion.addEventListener("click", function (e) {
+cerrarSesion?.addEventListener("click", function (e) {
     e.preventDefault();
 
     Swal.fire({
         title: '¿Cerrar sesión?',
         text: '¿Estás seguro que deseas salir del sistema?',
-// líneas 220+ no se muestran en el video
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            window.location.href = 'Salir.php';
+        }
+
+    });
+});

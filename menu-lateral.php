@@ -1,4 +1,12 @@
 <?php
+// tieneRol() se define en menu-cabecera.php; esto evita errores si no estuviera cargada
+if (!function_exists('tieneRol')) {
+    function tieneRol($rol)
+    {
+        $roles = array_map('trim', explode(',', $_SESSION['rol'] ?? ''));
+        return in_array($rol, $roles, true);
+    }
+}
 $paginaActual = basename($_SERVER['PHP_SELF']);
 
 // Páginas del menú Configuración > Ruta
@@ -139,6 +147,7 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" data-accordion="false" id="navigation">
 
                 <!-- CONFIGURACIÓN -->
+                <?php if (tieneRol('admin')) { ?>
                 <li class="nav-item <?= $menuConfiguracionActivo ? 'menu-open' : '' ?>">
                     <a href="#" class="nav-link <?= $menuConfiguracionActivo ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-circle-fill"></i>
@@ -259,8 +268,10 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
 
                     </ul>
                 </li>
+                <?php } ?>
 
                 <!-- EMPLEADO -->
+                <?php if (tieneRol('admin')) { ?>
                 <li class="nav-item <?= $menuEmpleadoActivo ? 'menu-open' : '' ?>">
                     <a href="#" class="nav-link <?= $menuEmpleadoActivo ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-box-arrow-in-right"></i>
@@ -290,8 +301,10 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
                         </li>
                     </ul>
                 </li>
+                <?php } ?>
 
                 <!-- SOCIO -->
+                <?php if (tieneRol('admin')) { ?>
                 <li class="nav-item <?= $menuSocioActivo ? 'menu-open' : '' ?>">
                     <a href="#" class="nav-link <?= $menuSocioActivo ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-person"></i>
@@ -315,8 +328,10 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
                         </li>
                     </ul>
                 </li>
+                <?php } ?>
 
                 <!-- CONTRATO -->
+                <?php if (tieneRol('admin')) { ?>
                 <li class="nav-item <?= $menuContratoActivo ? 'menu-open' : '' ?>">
                     <a href="#" class="nav-link <?= $menuContratoActivo ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-file-earmark-text"></i>
@@ -340,8 +355,10 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
                         </li>
                     </ul>
                 </li>
+                <?php } ?>
 
                 <!-- MEDIDOR -->
+                <?php if (tieneRol('admin')) { ?>
                 <li class="nav-item <?= $menuMedidorActivo ? 'menu-open' : '' ?>">
                     <a href="#" class="nav-link <?= $menuMedidorActivo ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-speedometer2"></i>
@@ -359,8 +376,10 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
                         </li>
                     </ul>
                 </li>
+                <?php } ?>
 
                 <!-- LECTURA -->
+                <?php if (tieneRol('admin') || tieneRol('lector')) { ?>
                 <li class="nav-item <?= $menuLecturaActivo ? 'menu-open' : '' ?>">
                     <a href="#" class="nav-link <?= $menuLecturaActivo ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-file-spreadsheet"></i>
@@ -379,8 +398,10 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
                         
                     </ul>
                 </li>
+                <?php } ?>
 
                 <!-- RECIBOS -->
+                <?php if (tieneRol('admin')) { ?>
                 <li class="nav-item <?= $menuRecibosActivo ? 'menu-open' : '' ?>">
                     <a href="#" class="nav-link <?= $menuRecibosActivo ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-file-check"></i>
@@ -404,7 +425,9 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
                         </li>
                     </ul>
                 </li>
+                <?php } ?>
  <!-- PAGOS -->
+                <?php if (tieneRol('admin') || tieneRol('caja')) { ?>
            <li class="nav-item <?= $menuPagosActivo ? 'menu-open' : '' ?>">
   <a href="#" class="nav-link <?= $menuPagosActivo ? 'active' : '' ?>">
     <i class="nav-icon bi bi-currency-dollar"></i>
@@ -429,6 +452,7 @@ $menuPagosActivo = in_array($paginaActual, $paginasPagos);
 
   </ul>
 </li>
+                <?php } ?>
             </ul>
             <!--end::Sidebar Menu-->
         </nav>

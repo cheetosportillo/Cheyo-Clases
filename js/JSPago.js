@@ -16,6 +16,10 @@ const monto = document.getElementById("monto");
 const pagado = document.getElementById("pagado");
 const pendiente = document.getElementById("pendiente");
 const estado = document.getElementById("estado");
+const nombre = document.getElementById("nombre");
+const nmedidor = document.getElementById("nmedidor");
+const periodo = document.getElementById("periodo");
+const empleado = document.getElementById("empleado");
 
 const campos = [recibido, fecha];
 
@@ -177,7 +181,11 @@ if (formulario) {
 
 
             if (nreciboValido && recibidoValido && empleadoValido && fechaValido) {
-                if (recibido.value > (pendiente.value)) {
+                // Se comparan como números (como texto "10.00" < "5.00")
+                const aPagar = parseFloat(recibido.value);
+                const saldo = parseFloat(pendiente.value.replace(/[$,]/g, ""));
+
+                if (aPagar > saldo) {
                     Swal.fire({
                         position: "top-end",
                         icon: "info",
@@ -235,7 +243,15 @@ if (formulario) {
                             });
                         }
                     } catch (error) {
-
+                        console.error(error);
+                        Swal.fire({
+                            position: "top-end",
+                            icon: "error",
+                            title: "Poseidón",
+                            text: "No se pudo registrar el pago",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
                     } finally {
                         btnGuardar.disabled = false;
                         btnGuardar.textContent = "Guardar";
@@ -258,4 +274,104 @@ function limpiarCampos() {
 
 ///////////PROCESA AL TERMINAR DE CARGAR LA PAGINA
 document.addEventListener("DOMContentLoaded", async () => {
-    // (Líneas 261 en adelante no mostradas en el video)
+    //////////////// CARGAR CAJEROS EN EL SELECT /////////////
+    try {
+        const datos = new FormData();
+        datos.append("opcion", "consultar");
+
+        const respuesta = await fetch("DAOPago.php", {
+            method: "POST",
+            body: datos
+        });
+
+        if (!respuesta.ok) {
+            throw new Error("Error HTTP: " + respuesta.status);
+        }
+
+        const cajeros = await respuesta.json();
+
+        empleado.innerHTML = '<option value="">[Seleccion]</option>';
+
+        if (Array.isArray(cajeros)) {
+            cajeros.forEach(c => {
+                const opcion = document.createElement("option");
+                opcion.value = c.idempleado;
+                opcion.textContent = c.nombre;
+                empleado.appendChild(opcion);
+            });
+        }
+
+        // El cajero por defecto es el empleado que inició sesión (viene de pago.php)
+        if (empleadoLogueado) {
+            empleado.value = empleadoLogueado;
+        }
+    } catch (error) {
+        console.error("Error al cargar los cajeros:", error);
+    }
+
+    //////////////// SI VIENE ?id= (DESDE BUSCAR) SE CARGA EL RECIBO /////////////
+    const parametros = new URLSearchParams(window.location.search);
+    const idrecibos = parametros.get("id");
+
+    if (idrecibos) {
+        try {
+            const datos = new FormData();
+            datos.append("opcion", "consultarPorId");
+            datos.append("idrecibos", idrecibos);
+
+            Swal.fire({
+                title: "Consultando...",
+                text: "Espere",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const respuesta = await fetch("DAOPago.php", {
+                method: "POST",
+                body: datos
+            });
+
+            if (!respuesta.ok) {
+                throw new Error("Error HTTP: " + respuesta.status);
+            }
+
+            const resultado = await respuesta.json();
+
+            Swal.close();
+
+            if (resultado.estado) {
+                nrecibo.value = resultado.datos.nrecibo;
+                nombre.value = resultado.datos.nombre;
+                monto.value = resultado.datos.monto;
+                pagado.value = resultado.datos.pagado;
+                pendiente.value = resultado.datos.pendiente;
+                nmedidor.value = resultado.datos.nmedidor;
+                periodo.value = resultado.datos.periodo;
+
+                estado.classList.remove("estado-pendiente", "estado-pagado");
+
+                if (resultado.datos.estado === "PENDIENTE") {
+                    btnGuardar.disabled = false;
+                    btnGuardar.dataset.id = resultado.datos.idrecibos;
+                    estado.innerHTML = "PENDIENTE";
+                    estado.classList.add("estado-pendiente");
+                    recibido.focus();
+                } else {
+                    btnGuardar.disabled = true;
+                    estado.innerHTML = "PAGADO";
+                    estado.classList.add("estado-pagado");
+                }
+            } else {
+                Swal.fire({
+                    icon: "info",
+                    title: "Poseidón",
+                    text: "No se encontró el recibo"
+                });
+            }
+        } catch (error) {
+            Swal.close();
+            console.error(error);
+        }
+    }
+});

@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const contenedor = document.getElementById("users-table");
     const filtro = document.getElementById("table-filter");
     const paginacion = document.getElementById("table-pagination");
-    const btnGenerar = document.getElementById("btnGenerar");
 
     const contador = document.getElementById("total-registros");
 
@@ -84,12 +83,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     tabla.on("dataLoaded", actualizarContador);
-    // (Líneas 90–95 no mostradas en el video)
-    tabla.on("tableBuilt", function () {
-        document.addEventListener("change", function (e) {
-            // (Líneas 98–105 no mostradas en el video)
-        });
-    });
+    tabla.on("dataFiltered", actualizarContador);
+    tabla.on("dataChanged", actualizarContador);
 
     try {
 
@@ -130,4 +125,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (filtro) {
         filtro.addEventListener("input", () => {
-            // (Líneas 149 en adelante no mostradas en el video)
+            const valor = filtro.value.trim();
+
+            if (!valor) {
+                tabla.clearFilter();
+                return;
+            }
+
+            tabla.setFilter([
+                [
+                    { field: "nrecibo", type: "like", value: valor },
+                    { field: "nmedidor", type: "like", value: valor },
+                    { field: "dui", type: "like", value: valor },
+                    { field: "nombre", type: "like", value: valor },
+                    { field: "periodo", type: "like", value: valor },
+                    { field: "monto", type: "like", value: valor }
+                ]
+            ]);
+        });
+    }
+});

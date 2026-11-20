@@ -3,7 +3,7 @@ const sumaMensual = document.getElementById("sumaMensual");
 const pendientesPago = document.getElementById("pendientesPago");
 const numeroSocio = document.getElementById("numeroSocio");
 
-cerrarSesion.addEventListener("click", function (e) {
+cerrarSesion?.addEventListener("click", function (e) {
     e.preventDefault();
 
     Swal.fire({
@@ -18,7 +18,7 @@ cerrarSesion.addEventListener("click", function (e) {
     }).then((result) => {
 
         if (result.isConfirmed) {
-            window.location.href = 'salir.php';
+            window.location.href = 'Salir.php';
         }
 
     });

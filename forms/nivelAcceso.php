@@ -59,7 +59,22 @@ if (!isset($_SESSION['autenticado']) || $_SESSION['autenticado'] !== true) {
 </head>
 
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
-  <!-- líneas 50–67 (<div class="app-wrapper">, menú lateral, <main class="app-main">, <div class="app-content">) no se muestran en el video -->
+  <div class="app-wrapper">
+    <!--begin::Header-->
+    <?php
+    include "../menu-cabecera.php";
+    include "../menu-lateral.php";
+    ?>
+    <!--end::Sidebar-->
+    <main class="app-main">
+      <div class="app-content-header">
+        <div class="container-fluid">
+          <div class="row">
+          </div>
+        </div>
+      </div>
+      <div class="app-content">
+        <div class="container-fluid">
         <form id="formulario" name="formulario" method="POST" action="#" autocomplete="off">
           <div class="row">
             <div class="col-12 col-md-12 col-lg-12">

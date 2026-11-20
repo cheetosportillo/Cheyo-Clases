@@ -1,11 +1,14 @@
 <?php
-$roles = array_map('trim', explode(',', $_SESSION['rol'] ?? ''));//admin, caja
+// Roles del usuario que inició sesión (se guardan en DAOLogin.php), ej: "admin, caja"
+$roles = array_map('trim', explode(',', $_SESSION['rol'] ?? '')); //admin, caja, lector, cobro
+$nombreUsuario = $_SESSION['nombreEmpleado'] ?? 'Usuario';
 
 function tieneRol($rol)
 {
     global $roles;
     return in_array($rol, $roles, true);
 }
+?>
 <nav class="app-header navbar navbar-expand bg-body">
       <!--begin::Container-->
       <div class="container-fluid">
@@ -158,30 +161,6 @@ function tieneRol($rol)
               </a>
             </div>
           </li>
-          <?php if (tieneRol('admin')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de Configuración -->
-<?php }
-if (tieneRol('admin')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de Empleado -->
-<?php }
-if (tieneRol('admin')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de Socio -->
-<?php }
-if (tieneRol('admin')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de Contrato -->
-<?php }
-if (tieneRol('admin')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de Medidor -->
-<?php }
-if (tieneRol('admin') || tieneRol('lector')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de Lectura -->
-<?php }
-if (tieneRol('admin')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de Generar Recibos -->
-<?php }
-if (tieneRol('admin') || tieneRol('caja')) { ?>
-    <!-- Bloque <li class="nav-item ..."> de PAGOS -->
-<?php } ?>
           <!--end::Notifications Dropdown Menu-->
 
           <!--begin::Language Menu-->
@@ -259,16 +238,16 @@ if (tieneRol('admin') || tieneRol('caja')) { ?>
           <!--begin::User Menu Dropdown-->
           <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-              <img src="../assets/img/user2-160x160.jpg" class="user-image rounded-circle shadow" alt="Alexander Pierce" />
-              <span class="d-none d-xl-inline">Alexander Pierce</span>
+              <img src="../assets/img/user2-160x160.jpg" class="user-image rounded-circle shadow" alt="<?= htmlspecialchars($nombreUsuario) ?>" />
+              <span class="d-none d-xl-inline"><?= htmlspecialchars($nombreUsuario) ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
               <!--begin::User Image-->
               <li class="user-header text-bg-primary">
-                <img src="../assets/img/user2-160x160.jpg" class="rounded-circle shadow" alt="Alexander Pierce" />
+                <img src="../assets/img/user2-160x160.jpg" class="rounded-circle shadow" alt="<?= htmlspecialchars($nombreUsuario) ?>" />
                 <p>
-                  Alexander Pierce - Web Developer
-                  <small>Member since Nov. 2023</small>
+                  <?= htmlspecialchars($nombreUsuario) ?>
+                  <small><?= htmlspecialchars(implode(', ', array_filter($roles))) ?></small>
                 </p>
               </li>
               <!--end::User Image-->
@@ -292,7 +271,7 @@ if (tieneRol('admin') || tieneRol('caja')) { ?>
               <!--begin::Menu Footer-->
               <li class="user-footer">
                 <a href="#" class="btn btn-outline-secondary">Profile</a>
-                <a href="#" class="btn btn-outline-danger float-end">Sign out</a>
+                <a href="Salir.php" id="cerrarSesion" class="btn btn-outline-danger float-end">Cerrar sesión</a>
               </li>
               <!--end::Menu Footer-->
             </ul>

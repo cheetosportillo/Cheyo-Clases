@@ -1,0 +1,17 @@
+QUE HACER (en este orden)
+
+1) MOVER  forms/login.php  ->  login.php (a la RAIZ del proyecto, junto a index.php).
+   Sus rutas (js/..., css/..., forms/DAOLogin.php) y los redirects de Salir.php/index.php esperan que este en la raiz.
+
+2) BORRAR los archivos sin extension (se reemplazan por los de este paquete):
+   forms/DAOIndex   ->  ahora forms/DAOIndex.php
+   js/JSIndex       ->  ahora js/JSIndex.js
+
+3) COPIAR el contenido de esta carpeta sobre el proyecto (respetando carpetas), reemplazando.
+
+4) Tabla usuario: el login usa usuario/clave con password_hash (como lo guarda DAOnivelAcceso.php).
+   Por defecto usuario y contraseña = DUI con guion, ej. 00000000-1.
+   Para el primer ingreso crea un usuario con rol admin, por ejemplo en phpMyAdmin (SQL):
+     INSERT INTO usuario (idempleado, rol, usuario, clave)
+     VALUES (1, 'admin', '<hash de password_hash("00000000-1", PASSWORD_DEFAULT)>', '<mismo hash>');
+   (genera el hash con:  php -r "echo password_hash('00000000-1', PASSWORD_DEFAULT);" )

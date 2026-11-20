@@ -528,7 +528,7 @@ function imprimirRecibos(recibos, ventana) {
             lecturaAnterior: recibo.lectura_anterior ?? 1360,
             lecturaActual: recibo.lectura_actual ?? 1370,
             consumo: recibo.metros ?? 10,
-            desde: recibo.desde ?? "23/09/2026",
+            desde: recibo.desde ?? restarDias(recibo.fecha_lectura, recibo.dias ?? 30),
             hasta: recibo.fecha_lectura ?? "22/10/2026",
             dias: recibo.dias ?? 30,
             mes: recibo.periodo ?? "10-2026",
@@ -545,4 +545,196 @@ function imprimirRecibos(recibos, ventana) {
         };
 
         const consumo = Number(datos.consumo);
-        // (Líneas 549 en adelante no se muestran en el video)
+        const total = Number(datos.precio);
+        const unitario = Number(datos.precio_unitario);
+
+        // Cuota fija (hasta 10 m3): el total no es consumo x precio unitario
+        const esCuotaFija = Math.abs(consumo * unitario - total) > 0.005;
+        const descripcion = esCuotaFija ? "CUOTA FIJA POR CONSUMO DE AGUA" : "COBRO POR M3 CONSUMIDO";
+        const cantidad = esCuotaFija ? 1 : consumo;
+        const precioLinea = esCuotaFija ? total : unitario;
+
+        // Un mismo recibo se imprime dos veces: ORIGINAL y COPIA
+        const ejemplar = (tipo) => `
+        <div class="factura">
+            <div class="tipo-factura">${tipo}</div>
+
+            <div class="encabezado">
+                <div class="empresa">
+                    <div style="display:flex; align-items:flex-start; gap:60px;">
+                        <h1>POSEIDON</h1>
+                        <div style="text-align:center;">
+                            <div style="font-size:20px; font-weight:bold; font-family:'Times New Roman', serif;">${esc(datos.nrecibo)}</div>
+                            <div style="font-size:8px;">N° de Recibo</div>
+                        </div>
+                    </div>
+                    <p class="direccion-empresa">Dirección: Final Av. El Carmen, San Esteban Catarina</p>
+                </div>
+
+                <div class="cuenta">
+                    <div class="titulo">Numero de Cuenta</div>
+                    <div class="numero">${esc(datos.cuenta)}</div>
+                </div>
+            </div>
+
+            <div class="lecturas">
+                <div class="fila"><span>Lectura Anterior:</span><span class="valor">${esc(datos.lecturaAnterior)}</span></div>
+                <div class="fila"><span>Lectura Actual:</span><span class="valor">${esc(datos.lecturaActual)}</span></div>
+                <div class="fila"><span>Consumo</span><span class="valor">${esc(consumo)}</span></div>
+            </div>
+
+            <div class="informacion">
+                <div class="barra">INFORMACION DEL RECEPTOR</div>
+                <div class="datos-receptor">
+                    <div class="datos-izquierda">
+                        <p>Facturado desde: ${esc(datos.desde)}</p>
+                        <p>Facturado hasta: ${esc(datos.hasta)}</p>
+                        <p>Dias Facturados: ${esc(datos.dias)}</p>
+                        <p>Mes Facturado: ${esc(datos.mes)}</p>
+                        <p>RUTA: ${esc(datos.ruta)}</p>
+                        <p>Fecha de Emisión: ${esc(datos.emision)}</p>
+                        <p>Canton: ${esc(datos.canton)}</p>
+                    </div>
+                    <div class="datos-derecha">
+                        <p class="nombre"><span class="etiqueta">Nombre:</span><span>${esc(datos.nombreSocio)}</span></p>
+                        <div class="direccion-receptor">
+                            <span>Dirección:</span>
+                            <span>${esc(datos.direccion)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="barra">DESCRIPCION DEL COBRO</div>
+            <table class="tabla-cobro">
+                <thead>
+                    <tr>
+                        <th class="col-descripcion">Descripcion</th>
+                        <th class="col-cantidad">Cant.</th>
+                        <th class="col-precio">Precio Unitario</th>
+                        <th class="col-total">Total:</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="col-descripcion">${descripcion}</td>
+                        <td class="col-cantidad">${cantidad}</td>
+                        <td class="col-precio">$${precioLinea.toFixed(2)}</td>
+                        <td class="col-total">$${total.toFixed(2)}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="totales">
+                <div class="total-letras">Total en letras: ${numeroALetras(total)}</div>
+                <div class="total-pagar">Total a Pagar: $${total.toFixed(2)}</div>
+            </div>
+
+            <div class="vencimiento">
+                <div>Fecha de Vencimiento: ${esc(datos.vencimiento)}</div>
+                <div>Avisos: Aqui va el Aviso para el cliente</div>
+            </div>
+        </div>`;
+
+        html += `
+    <div class="pagina">
+        ${ejemplar("ORIGINAL - CLIENTE")}
+        <div class="separador"></div>
+        ${ejemplar("COPIA INSTITUCION")}
+    </div>`;
+    });
+
+    html += `
+</body>
+</html>`;
+
+    ventana.document.open();
+    ventana.document.write(html);
+    ventana.document.close();
+
+    // Se espera a que cargue el documento y se abre el cuadro de impresión
+    ventana.onload = () => {
+        ventana.focus();
+        ventana.print();
+    };
+}
+
+/////////////// UTILIDADES DEL RECIBO ///////////////
+
+// Evita que un texto con < > & rompa el HTML del recibo
+function esc(valor) {
+    return String(valor ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+// "05/09/2026" menos 30 dias -> "06/08/2026"
+function restarDias(fecha, dias) {
+    const partes = String(fecha ?? "").split("/");
+
+    if (partes.length !== 3) return "";
+
+    const f = new Date(Number(partes[2]), Number(partes[1]) - 1, Number(partes[0]));
+    f.setDate(f.getDate() - Number(dias));
+
+    const dd = String(f.getDate()).padStart(2, "0");
+    const mm = String(f.getMonth() + 1).padStart(2, "0");
+
+    return `${dd}/${mm}/${f.getFullYear()}`;
+}
+
+// 2.31 -> "DOS con 31/100"
+function numeroALetras(valor) {
+    const unidades = ["", "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE",
+        "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE",
+        "DIECIOCHO", "DIECINUEVE", "VEINTE", "VEINTIUN", "VEINTIDOS", "VEINTITRES",
+        "VEINTICUATRO", "VEINTICINCO", "VEINTISEIS", "VEINTISIETE", "VEINTIOCHO", "VEINTINUEVE"];
+    const decenas = ["", "", "", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
+    const centenas = ["", "CIENTO", "DOSCIENTOS", "TRESCIENTOS", "CUATROCIENTOS", "QUINIENTOS",
+        "SEISCIENTOS", "SETECIENTOS", "OCHOCIENTOS", "NOVECIENTOS"];
+
+    function menorMil(n) {
+        if (n === 0) return "";
+        if (n === 100) return "CIEN";
+
+        const c = Math.floor(n / 100);
+        const r = n % 100;
+        let texto = centenas[c];
+
+        if (r > 0) {
+            if (r < 30) {
+                texto += (texto ? " " : "") + unidades[r];
+            } else {
+                const d = Math.floor(r / 10);
+                const u = r % 10;
+                texto += (texto ? " " : "") + decenas[d] + (u > 0 ? " Y " + unidades[u] : "");
+            }
+        }
+
+        return texto.trim();
+    }
+
+    const numero = Math.round(Number(valor) * 100) / 100;
+    const enteros = Math.floor(numero);
+    const centavos = String(Math.round((numero - enteros) * 100)).padStart(2, "0");
+
+    let letras;
+
+    if (enteros === 0) {
+        letras = "CERO";
+    } else if (enteros < 1000) {
+        letras = menorMil(enteros);
+    } else {
+        const miles = Math.floor(enteros / 1000);
+        const resto = enteros % 1000;
+        const textoMiles = miles === 1 ? "MIL" : menorMil(miles) + " MIL";
+        letras = textoMiles + (resto > 0 ? " " + menorMil(resto) : "");
+    }
+
+    // "UN" solo al final se dice "UNO" (21 -> VEINTIUNO)
+    letras = letras.replace(/UN$/, "UNO");
+
+    return `${letras} con ${centavos}/100`;
+}

@@ -1,3 +1,4 @@
+<?php require_once "../Config/sesion.php"; ?>
 <html lang="en">
 
 <head>

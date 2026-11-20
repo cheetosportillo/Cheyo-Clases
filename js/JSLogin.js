@@ -71,3 +71,31 @@ if (formulario) {
                         showConfirmButton: false,
                         timer: 1500
                     });
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    position: "top-end",
+                    icon: "error",
+                    title: "Poseidón",
+                    text: "No se pudo iniciar sesión, intente de nuevo",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            } finally {
+                btnEntrar.disabled = false;
+                btnEntrar.textContent = "Entrar";
+            }
+        }
+    });
+
+    // Enter en cualquiera de los dos campos equivale a presionar "Entrar"
+    campos.forEach(function (campo) {
+        campo.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                btnEntrar.click();
+            }
+        });
+    });
+}

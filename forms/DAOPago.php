@@ -13,7 +13,7 @@ $empleado = $_POST['empleado'] ?? '';
 $opcion = $_POST['opcion'] ?? '';
 
 if ($opcion == "guardar") {
-    require_once "../config/conexion.php";
+    require_once "../Config/Conexion.php";
     ///se actualiza recibos y consumo en estado
 
     $fechaReal = date("Y-m-d H:i:s");
@@ -77,10 +77,10 @@ if ($opcion == "guardar") {
         }
 
         // Evitar abonos superiores al saldo
-        if ($recibido > $saldoAnterior) {
+        if ($recibidoCentavos > $saldoAnterior) {
             throw new Exception(
                 "El abono supera el saldo pendiente. Saldo disponible: $" .
-                    number_format($saldoAnterior, 2, '.', '')
+                    number_format($saldoAnterior / 100, 2, '.', '')
             );
         }
 
@@ -189,7 +189,7 @@ if ($opcion == "guardar") {
     }
 }
 if ($opcion == "consultarRECIBO") {
-    require_once "../config/conexion.php";
+    require_once "../Config/Conexion.php";
 
     try {
         $sql = "SELECT concat(so.nombre,' ',so.apellido) AS nombre,
@@ -250,14 +250,109 @@ if ($opcion == "consultarRECIBO") {
         ], JSON_UNESCAPED_UNICODE);
     }
 }
+/////////////// Igual que consultarRECIBO, pero buscando por idrecibos
+/////////////// (cuando se llega desde Buscar con pago.php?id=...)
 if ($opcion == "consultarPorId") {
 
-    require_once "../config/conexion.php";
+    require_once "../Config/Conexion.php";
 
     try {
         $sql = "SELECT concat(so.nombre,' ',so.apellido) AS nombre,
-        // ... (líneas 260–317 colapsadas en el video)
+                re.idrecibos,
+                re.nrecibo,
+                me.nmedidor,
+                CONCAT(co.mes, '-', co.anio) AS periodo,
+                re.metros,
+                re.monto,
+                re.pagado,
+                re.estado
+            FROM recibos AS re
+            INNER JOIN consumo AS co
+                ON re.idconsumo=co.idconsumo
+            INNER JOIN medidor AS me
+                ON me.idmedidor=co.idmedidor
+            INNER JOIN contrato AS con
+                ON con.idcontrato=me.idcontrato
+            INNER JOIN socio AS so
+                ON so.idsocio=con.idsocio
+            where re.idrecibos = ?";
+
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("i", $idrecibos);
+
+        $stmt->execute();
+
+        $resultado = $stmt->get_result();
+
+        if ($resultado->num_rows > 0) {
+            $fila = $resultado->fetch_assoc();
+            echo json_encode([
+                "estado" => true,
+                "datos" => [
+                    'idrecibos' => $fila['idrecibos'],
+                    'nrecibo'   => $fila['nrecibo'],
+                    'nombre'    => $fila['nombre'],
+                    'estado'    => $fila['estado'],
+                    'nmedidor'  => $fila['nmedidor'],
+                    'periodo'   => $fila['periodo'],
+                    'monto'     => number_format($fila['monto'], 2, ".", ","),
+                    'pagado'    => number_format($fila['pagado'], 2, ".", ","),
+                    'pendiente' => number_format($fila['monto'] - $fila['pagado'], 2, ".", ",")
+                ]
+            ], JSON_UNESCAPED_UNICODE);
+        } else {
+            echo json_encode([
+                "estado" => false,
+                "datos" => "No Existe"
+            ]);
+        }
+
+        $stmt->close();
+        $conexion->close();
+    } catch (Throwable $e) {
+
+        echo json_encode([
+            "mensaje" => "No se pudieron obtener los registros"
+        ], JSON_UNESCAPED_UNICODE);
+    }
 }
+
+/////////////// Cajeros: empleados con rol caja o admin (select "Cajero")
 if ($opcion == "consultar") {
-    // ... (líneas 318–374 colapsadas en el video)
+    require_once "../Config/Conexion.php";
+
+    try {
+        $sql = "SELECT e.idempleado, CONCAT(e.nombre, ' ', e.apellido) AS nombre
+                FROM empleado AS e
+                INNER JOIN usuario AS u
+                    ON u.idempleado = e.idempleado
+                WHERE u.rol LIKE '%caja%'
+                   OR u.rol LIKE '%admin%'
+                ORDER BY e.nombre, e.apellido";
+
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute();
+
+        $resultado = $stmt->get_result();
+
+        $empleados = [];
+
+        while ($fila = $resultado->fetch_assoc()) {
+            $empleados[] = [
+                'idempleado' => $fila['idempleado'],
+                'nombre'     => $fila['nombre']
+            ];
+        }
+
+        echo json_encode($empleados, JSON_UNESCAPED_UNICODE);
+
+        $resultado->free();
+        $stmt->close();
+        $conexion->close();
+    } catch (Throwable $e) {
+
+        echo json_encode([
+            "mensaje" => "No se pudieron obtener los registros"
+        ], JSON_UNESCAPED_UNICODE);
+    }
 }
